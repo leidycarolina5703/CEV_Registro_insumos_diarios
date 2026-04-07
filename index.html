@@ -74,13 +74,56 @@
         </div>
     </div>
 
-    <div id="main-app" class="hidden max-w-3xl mx-auto p-2 sm:p-6 space-y-4 sm:space-y-6 pb-12">
+    <div id="dashboard-screen" class="hidden max-w-4xl mx-auto p-4 sm:p-6 space-y-6 pt-10">
+        
+        <header class="bg-white rounded-xl shadow-md p-6 flex flex-col sm:flex-row justify-between items-center gap-4 border border-gray-200">
+            <div class="flex items-center gap-4">
+                <img src="Logo.png" alt="Logo CEV" class="h-14 sm:h-16 w-auto object-contain">
+                <div>
+                    <h1 class="text-2xl font-bold text-[#154390]">Panel de Control CEV</h1>
+                    <p class="text-gray-500 text-sm mt-1">Selecciona un módulo para comenzar</p>
+                </div>
+            </div>
+            <button onclick="logoutUser()" class="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-semibold flex items-center gap-2 transition-colors border border-red-200">
+                <i class="fa-solid fa-power-off"></i> Cerrar Sesión
+            </button>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            
+            <button onclick="openInventory()" class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl hover:border-[#154390] transition-all border border-gray-200 flex flex-col items-center justify-center gap-4 group transform hover:-translate-y-1">
+                <div class="w-20 h-20 bg-blue-50 text-[#154390] rounded-full flex items-center justify-center text-4xl group-hover:bg-[#154390] group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Registro de Insumos</h2>
+                <p class="text-gray-500 text-center">Gestión, conteo y control diario del inventario clínico.</p>
+            </button>
+
+            <div class="bg-gray-50 p-8 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-4 opacity-70 cursor-not-allowed">
+                <div class="w-20 h-20 bg-gray-200 text-gray-400 rounded-full flex items-center justify-center text-4xl">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div class="text-center">
+                    <h2 class="text-xl font-bold text-gray-500 mb-2">Reportes y Estadísticas</h2>
+                    <span class="text-xs bg-gray-300 text-gray-700 px-3 py-1 rounded-full font-bold uppercase tracking-wider">Próximamente</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div id="inventory-screen" class="hidden max-w-3xl mx-auto p-2 sm:p-6 space-y-4 sm:space-y-6 pb-12">
         
         <header class="bg-white rounded-xl shadow-md p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-4 border border-gray-200">
-            <div class="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
-                <img src="Logo.png" alt="Logo CEV" class="h-12 sm:h-16 w-auto object-contain">
+            <div class="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left w-full sm:w-auto">
+                <button onclick="goToDashboard()" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 transition-colors shrink-0">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
                 <div>
-                    <h1 class="text-xl sm:text-2xl font-bold text-[#154390]">Control de Insumos</h1>
+                    <h1 class="text-xl sm:text-2xl font-bold text-[#154390] flex items-center justify-center sm:justify-start gap-2">
+                        Control de Insumos
+                    </h1>
                     <p class="text-gray-500 text-xs sm:text-sm mt-1 flex items-center justify-center sm:justify-start gap-1">
                         <i class="fa-solid fa-cloud text-[#154390]"></i> Nube Activa
                     </p>
@@ -88,9 +131,6 @@
             </div>
 
             <div class="flex flex-col items-center sm:items-end w-full sm:w-auto gap-3">
-                <button onclick="logoutUser()" class="text-xs sm:text-sm text-red-600 hover:text-red-800 font-semibold flex items-center gap-1 transition-colors">
-                    <i class="fa-solid fa-power-off"></i> Cerrar Sesión
-                </button>
                 <div class="w-full sm:w-auto flex flex-col items-center sm:items-end">
                     <label for="report-date" class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 hidden sm:block">Fecha del registro</label>
                     <div class="flex items-center gap-2 w-full justify-center sm:justify-end">
@@ -154,11 +194,11 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        <div id="toast" class="fixed bottom-4 right-4 bg-[#154390] text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2 border border-gray-300 text-sm sm:text-base">
-            <i class="fa-solid fa-check-circle text-gray-200"></i>
-            <span id="toast-msg">Mensaje</span>
-        </div>
+    <div id="toast" class="fixed bottom-4 right-4 bg-[#154390] text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2 border border-gray-300 text-sm sm:text-base">
+        <i class="fa-solid fa-check-circle text-gray-200"></i>
+        <span id="toast-msg">Mensaje</span>
     </div>
 
     <script type="module">
@@ -181,6 +221,18 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        // --- NAVEGACIÓN ENTRE PANTALLAS ---
+        window.openInventory = function() {
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('inventory-screen').classList.remove('hidden');
+            initApp(); // Carga la tabla solo cuando el usuario entra al módulo
+        };
+
+        window.goToDashboard = function() {
+            document.getElementById('inventory-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+        };
+
         // --- CALENDARIO INTELIGENTE COLOMBIA ---
         function getHolidays(year) {
             const holidays = [];
@@ -197,24 +249,20 @@
                 holidays.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
             };
 
-            // Fijos
-            pushDate(new Date(year, 0, 1)); // Año Nuevo
-            pushDate(new Date(year, 4, 1)); // Trabajo
-            pushDate(new Date(year, 6, 20)); // Independencia
-            pushDate(new Date(year, 7, 7)); // Boyacá
-            pushDate(new Date(year, 11, 8)); // Inmaculada
-            pushDate(new Date(year, 11, 25)); // Navidad
+            pushDate(new Date(year, 0, 1)); 
+            pushDate(new Date(year, 4, 1)); 
+            pushDate(new Date(year, 6, 20)); 
+            pushDate(new Date(year, 7, 7)); 
+            pushDate(new Date(year, 11, 8)); 
+            pushDate(new Date(year, 11, 25)); 
+            pushDate(moveToMonday(new Date(year, 0, 6))); 
+            pushDate(moveToMonday(new Date(year, 2, 19))); 
+            pushDate(moveToMonday(new Date(year, 5, 29))); 
+            pushDate(moveToMonday(new Date(year, 7, 15))); 
+            pushDate(moveToMonday(new Date(year, 9, 12))); 
+            pushDate(moveToMonday(new Date(year, 10, 1))); 
+            pushDate(moveToMonday(new Date(year, 10, 11))); 
 
-            // Ley Emiliani
-            pushDate(moveToMonday(new Date(year, 0, 6))); // Reyes
-            pushDate(moveToMonday(new Date(year, 2, 19))); // San Jose
-            pushDate(moveToMonday(new Date(year, 5, 29))); // San Pedro
-            pushDate(moveToMonday(new Date(year, 7, 15))); // Asuncion
-            pushDate(moveToMonday(new Date(year, 9, 12))); // Raza
-            pushDate(moveToMonday(new Date(year, 10, 1))); // Todos los Santos
-            pushDate(moveToMonday(new Date(year, 10, 11))); // Independencia Cartagena
-
-            // Semana Santa (Algoritmo Computus)
             const a = year % 19, b = Math.floor(year / 100), c = year % 100;
             const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
             const h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4;
@@ -223,11 +271,11 @@
             const day = ((h + l - 7 * m + 114) % 31) + 1;
             const easter = new Date(year, month, day);
 
-            pushDate(addDays(easter, -3)); // Jueves Santo
-            pushDate(addDays(easter, -2)); // Viernes Santo
-            pushDate(moveToMonday(addDays(easter, 39))); // Ascensión
-            pushDate(moveToMonday(addDays(easter, 60))); // Corpus
-            pushDate(moveToMonday(addDays(easter, 68))); // Sagrado Corazón
+            pushDate(addDays(easter, -3)); 
+            pushDate(addDays(easter, -2)); 
+            pushDate(moveToMonday(addDays(easter, 39))); 
+            pushDate(moveToMonday(addDays(easter, 60))); 
+            pushDate(moveToMonday(addDays(easter, 68))); 
 
             return holidays;
         }
@@ -235,7 +283,7 @@
         function isYesterdayHoliday(dateString) {
             const [y, m, d] = dateString.split('-').map(Number);
             const currentDate = new Date(y, m - 1, d);
-            const yesterday = new Date(currentDate.getTime() - 86400000); // Restamos 24 horas
+            const yesterday = new Date(currentDate.getTime() - 86400000); 
             const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
             
             const holidays = getHolidays(yesterday.getFullYear());
@@ -263,14 +311,18 @@
         
         onAuthStateChanged(auth, (user) => {
             const loginScreen = document.getElementById('login-screen');
-            const mainApp = document.getElementById('main-app');
+            const dashboardScreen = document.getElementById('dashboard-screen');
+            const inventoryScreen = document.getElementById('inventory-screen');
+            
             if (user) {
+                // Al iniciar sesión, siempre mostrar el Dashboard primero
                 loginScreen.classList.add('hidden');
-                mainApp.classList.remove('hidden');
-                initApp(); 
+                dashboardScreen.classList.remove('hidden');
+                inventoryScreen.classList.add('hidden');
             } else {
                 loginScreen.classList.remove('hidden');
-                mainApp.classList.add('hidden');
+                dashboardScreen.classList.add('hidden');
+                inventoryScreen.classList.add('hidden');
             }
         });
 
@@ -406,10 +458,8 @@
                 else badge.classList.add('hidden');
 
                 inventory.forEach(item => {
-                    // Tomamos el ideal original de la lista maestra
                     let idealFinal = defaultData.find(d => d.name === item.name).ideal;
                     
-                    // Si ayer fue festivo, cambiamos temporalmente el ideal
                     if (wasHoliday) {
                         if (item.name === "Jeringa de 1mL") idealFinal = 30;
                         if (item.name === "Jeringa de 3mL") idealFinal = 30;
@@ -418,7 +468,7 @@
                         if (item.name === "Hartmann 500 mL") idealFinal = 15;
                     }
                     
-                    item.ideal = idealFinal; // Aplicamos el ideal al inventario
+                    item.ideal = idealFinal; 
                 });
 
             } catch (error) {
