@@ -49,7 +49,11 @@
                     <label class="block text-sm font-semibold text-gray-600 mb-1">Contraseña</label>
                     <div class="relative">
                         <i class="fa-solid fa-lock absolute left-3 top-3 text-gray-400"></i>
-                        <input type="password" id="password-input" required class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#154390] focus:border-transparent bg-gray-50" placeholder="••••••••">
+                        <input type="password" id="password-input" required class="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#154390] focus:border-transparent bg-gray-50" placeholder="••••••••">
+                        
+                        <button type="button" id="toggle-password" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 focus:outline-none">
+                            <i class="fa-solid fa-eye" id="toggle-icon"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -156,7 +160,7 @@
         import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-        // TUS LLAVES REALES DE FIREBASE
+        // LLAVES DE FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyBSzvWwy61Zexsy4dBSCJZtCChBLge7Nlk",
             authDomain: "cev-registro-insumos-diarios.firebaseapp.com",
@@ -173,24 +177,36 @@
 
         // --- SISTEMA DE AUTENTICACIÓN ---
         
-        // Escuchar si hay alguien logueado o no
+        // Mostrar/Ocultar contraseña
+        document.getElementById('toggle-password').addEventListener('click', function () {
+            const passwordInput = document.getElementById('password-input');
+            const toggleIcon = document.getElementById('toggle-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash'); // Cambia al ícono de ojito tachado
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        });
+        
         onAuthStateChanged(auth, (user) => {
             const loginScreen = document.getElementById('login-screen');
             const mainApp = document.getElementById('main-app');
             
             if (user) {
-                // Usuario validado: ocultar login, mostrar app y cargar datos
                 loginScreen.classList.add('hidden');
                 mainApp.classList.remove('hidden');
                 initApp(); 
             } else {
-                // No hay usuario: mostrar login, ocultar app
                 loginScreen.classList.remove('hidden');
                 mainApp.classList.add('hidden');
             }
         });
 
-        // Manejar el formulario de Login
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email-input').value;
@@ -204,13 +220,9 @@
             btnLogin.disabled = true;
 
             try {
-                // Configurar si recuerda la sesión (Local = recuerda siempre, Session = se borra al cerrar pestaña)
                 const persistenceType = rememberMe ? browserLocalPersistence : browserSessionPersistence;
                 await setPersistence(auth, persistenceType);
-                
-                // Intentar ingresar
                 await signInWithEmailAndPassword(auth, email, password);
-                // Si funciona, el onAuthStateChanged se disparará automáticamente
                 
             } catch (error) {
                 errorBox.classList.remove('hidden');
@@ -225,19 +237,19 @@
             }
         });
 
-        // Función global para cerrar sesión (exponemos al window)
         window.logoutUser = () => {
             signOut(auth).then(() => {
-                // Al cerrar, limpiar los campos del login por seguridad
                 document.getElementById('email-input').value = '';
                 document.getElementById('password-input').value = '';
+                // Al salir, nos aseguramos de que la contraseña vuelva a estar oculta por defecto
+                document.getElementById('password-input').type = 'password';
+                document.getElementById('toggle-icon').className = 'fa-solid fa-eye';
             }).catch((error) => {
                 console.error("Error cerrando sesión:", error);
             });
         };
 
-
-        // --- LÓGICA DE LA APLICACIÓN (Solo arranca si hay login) ---
+        // --- LÓGICA DE LA APLICACIÓN ---
 
         const defaultData = [
             { name: "Catéter 24", ideal: 20 }, { name: "Catéter 22", ideal: 20 }, { name: "Catéter 20", ideal: 20 },
@@ -308,7 +320,6 @@
             const exportEnd = document.getElementById('export-end');
             
             const todayStr = obtenerFechaString(new Date());
-            // Solo establecer si están vacíos para no sobreescribir si ya había elegido una fecha
             if(!dateInput.value) dateInput.value = todayStr;
             if(!exportStart.value) exportStart.value = todayStr;
             if(!exportEnd.value) exportEnd.value = todayStr;
