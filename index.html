@@ -101,10 +101,10 @@
 
             <div class="bg-gray-50 p-8 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-4 opacity-70 cursor-not-allowed">
                 <div class="w-20 h-20 bg-gray-200 text-gray-400 rounded-full flex items-center justify-center text-4xl">
-                    <i class="fa-solid fa-chart-pie"></i>
+                    <i class="fa-solid fa-cart-plus"></i>
                 </div>
                 <div class="text-center">
-                    <h2 class="text-xl font-bold text-gray-500 mb-2">Reportes y Estadísticas</h2>
+                    <h2 class="text-xl font-bold text-gray-500 mb-2">Pedido de Insumos</h2>
                     <span class="text-xs bg-gray-300 text-gray-700 px-3 py-1 rounded-full font-bold uppercase tracking-wider">Próximamente</span>
                 </div>
             </div>
@@ -225,7 +225,7 @@
         window.openInventory = function() {
             document.getElementById('dashboard-screen').classList.add('hidden');
             document.getElementById('inventory-screen').classList.remove('hidden');
-            initApp(); // Carga la tabla solo cuando el usuario entra al módulo
+            initApp(); 
         };
 
         window.goToDashboard = function() {
@@ -315,7 +315,6 @@
             const inventoryScreen = document.getElementById('inventory-screen');
             
             if (user) {
-                // Al iniciar sesión, siempre mostrar el Dashboard primero
                 loginScreen.classList.add('hidden');
                 dashboardScreen.classList.remove('hidden');
                 inventoryScreen.classList.add('hidden');
