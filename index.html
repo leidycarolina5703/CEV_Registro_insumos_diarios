@@ -94,6 +94,11 @@
                 <div class="w-full sm:w-auto flex flex-col items-center sm:items-end">
                     <label for="report-date" class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 hidden sm:block">Fecha del registro</label>
                     <div class="flex items-center gap-2 w-full justify-center sm:justify-end">
+                        
+                        <span id="festivo-badge" class="hidden bg-yellow-100 text-yellow-800 text-[10px] sm:text-xs font-bold px-2 py-1 rounded border border-yellow-300 whitespace-nowrap shadow-sm">
+                            <i class="fa-solid fa-calendar-exclamation"></i> Día Post-Festivo
+                        </span>
+
                         <div id="loading-spinner" class="loader hidden"></div>
                         <input type="date" id="report-date" class="w-full sm:w-auto border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#154390] bg-gray-50 text-[#154390] font-bold shadow-sm cursor-pointer hover:bg-gray-200 transition-colors text-sm">
                     </div>
@@ -161,6 +166,7 @@
         import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
+        // TUS LLAVES
         const firebaseConfig = {
             apiKey: "AIzaSyBSzvWwy61Zexsy4dBSCJZtCChBLge7Nlk",
             authDomain: "cev-registro-insumos-diarios.firebaseapp.com",
@@ -175,11 +181,75 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        // --- CALENDARIO INTELIGENTE COLOMBIA ---
+        function getHolidays(year) {
+            const holidays = [];
+            const addDays = (d, days) => new Date(d.getTime() + days * 86400000);
+            const moveToMonday = (d) => {
+                const day = d.getDay();
+                if (day !== 1) {
+                    const diff = (8 - day) % 7;
+                    return addDays(d, diff === 0 ? 7 : diff);
+                }
+                return d;
+            };
+            const pushDate = (d) => {
+                holidays.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+            };
+
+            // Fijos
+            pushDate(new Date(year, 0, 1)); // Año Nuevo
+            pushDate(new Date(year, 4, 1)); // Trabajo
+            pushDate(new Date(year, 6, 20)); // Independencia
+            pushDate(new Date(year, 7, 7)); // Boyacá
+            pushDate(new Date(year, 11, 8)); // Inmaculada
+            pushDate(new Date(year, 11, 25)); // Navidad
+
+            // Ley Emiliani
+            pushDate(moveToMonday(new Date(year, 0, 6))); // Reyes
+            pushDate(moveToMonday(new Date(year, 2, 19))); // San Jose
+            pushDate(moveToMonday(new Date(year, 5, 29))); // San Pedro
+            pushDate(moveToMonday(new Date(year, 7, 15))); // Asuncion
+            pushDate(moveToMonday(new Date(year, 9, 12))); // Raza
+            pushDate(moveToMonday(new Date(year, 10, 1))); // Todos los Santos
+            pushDate(moveToMonday(new Date(year, 10, 11))); // Independencia Cartagena
+
+            // Semana Santa (Algoritmo Computus)
+            const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+            const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+            const h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4;
+            const l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+            const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+            const day = ((h + l - 7 * m + 114) % 31) + 1;
+            const easter = new Date(year, month, day);
+
+            pushDate(addDays(easter, -3)); // Jueves Santo
+            pushDate(addDays(easter, -2)); // Viernes Santo
+            pushDate(moveToMonday(addDays(easter, 39))); // Ascensión
+            pushDate(moveToMonday(addDays(easter, 60))); // Corpus
+            pushDate(moveToMonday(addDays(easter, 68))); // Sagrado Corazón
+
+            return holidays;
+        }
+
+        function isYesterdayHoliday(dateString) {
+            const [y, m, d] = dateString.split('-').map(Number);
+            const currentDate = new Date(y, m - 1, d);
+            const yesterday = new Date(currentDate.getTime() - 86400000); // Restamos 24 horas
+            const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+            
+            const holidays = getHolidays(yesterday.getFullYear());
+            if (yesterday.getMonth() === 11 && yesterday.getDate() === 31) {
+                 const prevHolidays = getHolidays(yesterday.getFullYear());
+                 return prevHolidays.includes(yesterdayStr);
+            }
+            return holidays.includes(yesterdayStr);
+        }
+
         // --- SISTEMA DE AUTENTICACIÓN ---
         document.getElementById('toggle-password').addEventListener('click', function () {
             const passwordInput = document.getElementById('password-input');
             const toggleIcon = document.getElementById('toggle-icon');
-            
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
                 toggleIcon.classList.remove('fa-eye');
@@ -194,7 +264,6 @@
         onAuthStateChanged(auth, (user) => {
             const loginScreen = document.getElementById('login-screen');
             const mainApp = document.getElementById('main-app');
-            
             if (user) {
                 loginScreen.classList.add('hidden');
                 mainApp.classList.remove('hidden');
@@ -221,14 +290,9 @@
                 const persistenceType = rememberMe ? browserLocalPersistence : browserSessionPersistence;
                 await setPersistence(auth, persistenceType);
                 await signInWithEmailAndPassword(auth, email, password);
-                
             } catch (error) {
                 errorBox.classList.remove('hidden');
-                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    document.getElementById('login-error-text').innerText = "Correo o contraseña incorrectos.";
-                } else {
-                    document.getElementById('login-error-text').innerText = "Ocurrió un error. Intenta de nuevo.";
-                }
+                document.getElementById('login-error-text').innerText = "Correo o contraseña incorrectos.";
             } finally {
                 btnLogin.innerHTML = '<span>Ingresar al Sistema</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>';
                 btnLogin.disabled = false;
@@ -241,95 +305,39 @@
                 document.getElementById('password-input').value = '';
                 document.getElementById('password-input').type = 'password';
                 document.getElementById('toggle-icon').className = 'fa-solid fa-eye';
-            }).catch((error) => console.error("Error cerrando sesión:", error));
+            });
         };
 
-        // --- LÓGICA DE LA APLICACIÓN ---
+        // --- BASE DE DATOS MAESTRA ---
         const defaultData = [
-            { name: "Catéter 24", ideal: 20 }, 
-            { name: "Catéter 22", ideal: 20 }, 
-            { name: "Catéter 20", ideal: 20 },
-            { name: "Llave 3 vías", ideal: 5 }, 
-            { name: "Tapones", ideal: 15 }, 
-            { name: "Pericraneal pequeño", ideal: 5 },
-            { name: "Pericraneal grueso", ideal: 5 }, 
-            { name: "Microgoteo", ideal: 15 }, 
-            { name: "Macrogoteo", ideal: 15 },
-            { name: "Buretrol", ideal: 5 }, 
-            { name: "Venobomba", ideal: 10 }, 
-            { name: "Máscara de nebulización", ideal: 5 },
-            { name: "Sonda gato", ideal: 5 }, 
-            { name: "Extensiones", ideal: 10 }, 
-            { name: "Sonda 5", ideal: 5 },
-            { name: "Sonda 6", ideal: 5 }, 
-            { name: "Sonda 8", ideal: 5 }, 
-            { name: "Sonda 10", ideal: 3 },
-            { name: "Sonda 12", ideal: 3 }, 
-            { name: "Sonda 14", ideal: 3 },
-            { name: "Sonda 16", ideal: 3 }, 
-            { name: "Sonda 18", ideal: 3 },
-            { name: "Metronidazol", ideal: 5 }, 
-            { name: "Pregabalina 75 mg", ideal: 15 }, 
-            { name: "Trimetoprim", ideal: 5 },
-            { name: "Esomeprazol", ideal: 5 }, 
-            { name: "Silimarina", ideal: 5 }, 
-            { name: "Bladuvil", ideal: 5 },
-            { name: "Mirtazapina", ideal: 5 }, 
-            { name: "Amoxicilina", ideal: 5 }, 
-            { name: "Ursacol", ideal: 5 },
-            { name: "Flunarizina", ideal: 5 }, 
-            { name: "Cefalexina", ideal: 5 }, 
-            { name: "Sulfadiazina", ideal: 5 },
-            { name: "Trazodona", ideal: 10 }, 
-            { name: "Pregabalina 25 mg", ideal: 15 }, 
-            { name: "Tramadol", ideal: 20 },
-            { name: "Domperidona (Domevoro)", ideal: 5 }, 
-            { name: "Metronidazol vial 100 mg", ideal: 2 },
-            { name: "Ampicilina", ideal: 4 }, 
-            { name: "Ceftriaxona", ideal: 4 }, 
-            { name: "Omeprazol inyectable", ideal: 5 },
-            { name: "Ampicilina + sulbactam", ideal: 5 }, 
-            { name: "Cefalotina", ideal: 5 }, 
-            { name: "Gluconato de calcio", ideal: 4 },
-            { name: "Cloruro de potasio", ideal: 5 }, 
-            { name: "Ginkgo biloba", ideal: 5 }, 
-            { name: "Melatonina", ideal: 5 },
-            { name: "Omega 3", ideal: 5 }, 
-            { name: "Vitamina C", ideal: 5 }, 
-            { name: "Vitamina E", ideal: 5 },
-            { name: "Ampolla de metilprednisolona", ideal: 2 }, 
-            { name: "Ondansetrón", ideal: 5 }, 
-            { name: "Ampolla Fluimucil", ideal: 5 },
-            { name: "Complejo B", ideal: 3 }, 
-            { name: "Tiamina", ideal: 3 }, 
-            { name: "Cloruro de sodio (ampolla)", ideal: 10 },
-            { name: "Vendaje Koban", ideal: 3 }, 
-            { name: "Vendaje de gasa", ideal: 3 }, 
-            { name: "Vendaje Algodón", ideal: 3 },
-            { name: "Perfusora de 50", ideal: 2 }, 
-            { name: "Perfusora de 20", ideal: 2 }, 
-            { name: "Jeringa de 1mL", ideal: 20 },
-            { name: "Jeringa de 3mL", ideal: 20 }, 
-            { name: "Jeringa de 5mL", ideal: 20 }, 
-            { name: "Jeringa de 10mL", ideal: 10 },
-            { name: "Jeringa de 20mL", ideal: 5 }, 
-            { name: "Jeringa de 50mL", ideal: 2 }, 
-            { name: "Jeringa de 60mL", ideal: 2 },
-            { name: "Hartmann 500 mL", ideal: 10 }, 
-            { name: "Solución salina 500mL", ideal: 5 }, 
-            { name: "Solución salina 250mL", ideal: 5 },
-            { name: "Solución salina 100mL", ideal: 5 }, 
-            { name: "Solución Hartmann 1 L", ideal: 5 }, 
-            { name: "Gelofusine", ideal: 1 },
-            { name: "Agua estéril", ideal: 1 }, 
-            { name: "Libra I/D Canino", ideal: 3 }, 
-            { name: "Libra I/D Gato", ideal: 3 },
-            { name: "Arena gato", ideal: 4 }, 
-            { name: "Tapetes", ideal: 3 }, 
-            { name: "Lata EN", ideal: 2 },
-            { name: "Lata ID Felino", ideal: 2 }, 
-            { name: "Lata AD", ideal: 2 },
-            { name: "Fortiflora Canino", ideal: 15 }, 
+            { name: "Catéter 24", ideal: 20 }, { name: "Catéter 22", ideal: 20 }, { name: "Catéter 20", ideal: 20 },
+            { name: "Llave 3 vías", ideal: 5 }, { name: "Tapones", ideal: 15 }, { name: "Pericraneal pequeño", ideal: 5 },
+            { name: "Pericraneal grueso", ideal: 5 }, { name: "Microgoteo", ideal: 15 }, { name: "Macrogoteo", ideal: 15 },
+            { name: "Buretrol", ideal: 5 }, { name: "Venobomba", ideal: 10 }, { name: "Máscara de nebulización", ideal: 5 },
+            { name: "Sonda gato", ideal: 5 }, { name: "Extensiones", ideal: 10 }, { name: "Sonda 5", ideal: 5 },
+            { name: "Sonda 6", ideal: 5 }, { name: "Sonda 8", ideal: 5 }, { name: "Sonda 10", ideal: 3 },
+            { name: "Sonda 12", ideal: 3 }, { name: "Sonda 14", ideal: 3 }, { name: "Sonda 16", ideal: 3 }, 
+            { name: "Sonda 18", ideal: 3 }, { name: "Metronidazol", ideal: 5 }, { name: "Pregabalina 75 mg", ideal: 15 }, 
+            { name: "Trimetoprim", ideal: 5 }, { name: "Esomeprazol", ideal: 5 }, { name: "Silimarina", ideal: 5 }, 
+            { name: "Bladuvil", ideal: 5 }, { name: "Mirtazapina", ideal: 5 }, { name: "Amoxicilina", ideal: 5 }, 
+            { name: "Ursacol", ideal: 5 }, { name: "Flunarizina", ideal: 5 }, { name: "Cefalexina", ideal: 5 }, 
+            { name: "Sulfadiazina", ideal: 5 }, { name: "Trazodona", ideal: 10 }, { name: "Pregabalina 25 mg", ideal: 15 }, 
+            { name: "Tramadol", ideal: 20 }, { name: "Domperidona (Domevoro)", ideal: 5 }, { name: "Metronidazol vial 100 mg", ideal: 2 },
+            { name: "Ampicilina", ideal: 4 }, { name: "Ceftriaxona", ideal: 4 }, { name: "Omeprazol inyectable", ideal: 5 },
+            { name: "Ampicilina + sulbactam", ideal: 5 }, { name: "Cefalotina", ideal: 5 }, { name: "Gluconato de calcio", ideal: 4 },
+            { name: "Cloruro de potasio", ideal: 5 }, { name: "Ginkgo biloba", ideal: 5 }, { name: "Melatonina", ideal: 5 },
+            { name: "Omega 3", ideal: 5 }, { name: "Vitamina C", ideal: 5 }, { name: "Vitamina E", ideal: 5 },
+            { name: "Ampolla de metilprednisolona", ideal: 2 }, { name: "Ondansetrón", ideal: 5 }, { name: "Ampolla Fluimucil", ideal: 5 },
+            { name: "Complejo B", ideal: 3 }, { name: "Tiamina", ideal: 3 }, { name: "Cloruro de sodio (ampolla)", ideal: 10 },
+            { name: "Vendaje Koban", ideal: 3 }, { name: "Vendaje de gasa", ideal: 3 }, { name: "Vendaje Algodón", ideal: 3 },
+            { name: "Perfusora de 50", ideal: 2 }, { name: "Perfusora de 20", ideal: 2 }, { name: "Jeringa de 1mL", ideal: 20 },
+            { name: "Jeringa de 3mL", ideal: 20 }, { name: "Jeringa de 5mL", ideal: 20 }, { name: "Jeringa de 10mL", ideal: 10 },
+            { name: "Jeringa de 20mL", ideal: 5 }, { name: "Jeringa de 50mL", ideal: 2 }, { name: "Jeringa de 60mL", ideal: 2 },
+            { name: "Hartmann 500 mL", ideal: 10 }, { name: "Solución salina 500mL", ideal: 5 }, { name: "Solución salina 250mL", ideal: 5 },
+            { name: "Solución salina 100mL", ideal: 5 }, { name: "Solución Hartmann 1 L", ideal: 5 }, { name: "Gelofusine", ideal: 1 },
+            { name: "Agua estéril", ideal: 1 }, { name: "Libra I/D Canino", ideal: 3 }, { name: "Libra I/D Gato", ideal: 3 },
+            { name: "Arena gato", ideal: 4 }, { name: "Tapetes", ideal: 3 }, { name: "Lata EN", ideal: 2 },
+            { name: "Lata ID Felino", ideal: 2 }, { name: "Lata AD", ideal: 2 }, { name: "Fortiflora Canino", ideal: 15 }, 
             { name: "Fortiflora Felino", ideal: 5 }
         ];
 
@@ -354,19 +362,13 @@
             else spinner.classList.add('hidden');
         }
 
-        function obtenerFechaString(dateObj) {
-            const year = dateObj.getFullYear();
-            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const day = String(dateObj.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
         function setFechasIniciales() {
             const dateInput = document.getElementById('report-date');
             const exportStart = document.getElementById('export-start');
             const exportEnd = document.getElementById('export-end');
+            const d = new Date();
+            const todayStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
             
-            const todayStr = obtenerFechaString(new Date());
             if(!dateInput.value) dateInput.value = todayStr;
             if(!exportStart.value) exportStart.value = todayStr;
             if(!exportEnd.value) exportEnd.value = todayStr;
@@ -382,24 +384,42 @@
 
                 if (docSnap.exists()) {
                     let cloudData = docSnap.data().items;
-                    
-                    // Filtrar los datos de la nube para eliminar insumos que ya no están en la lista por defecto
                     inventory = cloudData.filter(cloudItem => 
                         defaultData.some(defaultItem => defaultItem.name === cloudItem.name)
                     );
-
-                    // Actualizar las cantidades ideales si cambiaron, o agregar insumos nuevos
                     defaultData.forEach(defaultItem => {
-                        const existingItem = inventory.find(i => i.name === defaultItem.name);
-                        if (existingItem) {
-                            existingItem.ideal = defaultItem.ideal; // Actualiza el ideal
-                        } else {
-                            inventory.push({...defaultItem, actual: ''}); // Agrega si es nuevo
+                        if (!inventory.find(i => i.name === defaultItem.name)) {
+                            inventory.push({...defaultItem, actual: ''});
                         }
                     });
                 } else {
                     inventory = defaultData.map(item => ({ ...item, actual: '' }));
                 }
+
+                // ==========================================
+                // LÓGICA DE CANTIDADES POST-FESTIVO
+                // ==========================================
+                const wasHoliday = isYesterdayHoliday(fechaActual);
+                const badge = document.getElementById('festivo-badge');
+                
+                if(wasHoliday) badge.classList.remove('hidden');
+                else badge.classList.add('hidden');
+
+                inventory.forEach(item => {
+                    // Tomamos el ideal original de la lista maestra
+                    let idealFinal = defaultData.find(d => d.name === item.name).ideal;
+                    
+                    // Si ayer fue festivo, cambiamos temporalmente el ideal
+                    if (wasHoliday) {
+                        if (item.name === "Jeringa de 1mL") idealFinal = 30;
+                        if (item.name === "Jeringa de 3mL") idealFinal = 30;
+                        if (item.name === "Jeringa de 5mL") idealFinal = 30;
+                        if (item.name === "Solución Hartmann 1 L") idealFinal = 10;
+                    }
+                    
+                    item.ideal = idealFinal; // Aplicamos el ideal al inventario
+                });
+
             } catch (error) {
                 console.error("Error al cargar de Firebase:", error);
                 showToast("Error de conexión a la base de datos");
@@ -416,7 +436,6 @@
             try {
                 await setDoc(doc(db, "inventarios", fechaActual), { items: inventory });
             } catch (error) {
-                console.error("Error al guardar en Firebase:", error);
                 showToast("Error al guardar. Revisa tu conexión.");
             } finally {
                 toggleLoader(false);
@@ -493,9 +512,7 @@
             }
 
             clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                saveDataToFirebase();
-            }, 1000);
+            saveTimeout = setTimeout(() => { saveDataToFirebase(); }, 1000);
         }
 
         window.clearAll = async function() {
@@ -513,50 +530,32 @@
             const start = document.getElementById('export-start').value;
             const end = document.getElementById('export-end').value;
 
-            if (!start || !end) {
-                showToast("Selecciona fecha de inicio y fin");
-                return;
-            }
-            if (start > end) {
-                showToast("La fecha de inicio debe ser anterior a la de fin");
-                return;
-            }
+            if (!start || !end) { showToast("Selecciona fecha de inicio y fin"); return; }
+            if (start > end) { showToast("La fecha de inicio debe ser anterior a la de fin"); return; }
 
             showToast("Consultando a la nube...");
             toggleLoader(true);
 
             try {
-                const q = query(
-                    collection(db, "inventarios"), 
-                    where("__name__", ">=", start), 
-                    where("__name__", "<=", end)
-                );
-                
+                const q = query(collection(db, "inventarios"), where("__name__", ">=", start), where("__name__", "<=", end));
                 const querySnapshot = await getDocs(q);
                 
                 if (querySnapshot.empty) {
                     alert("No se encontraron registros en la nube para estas fechas.");
-                    toggleLoader(false);
-                    return;
+                    toggleLoader(false); return;
                 }
 
                 const datosParaExcel = [];
-
                 querySnapshot.forEach((doc) => {
                     const fecha = doc.id;
                     const items = doc.data().items;
-                    
                     items.forEach(item => {
                         if (item.actual !== '') {
                             const actual = parseInt(item.actual);
                             const reponer = Math.max(0, item.ideal - actual);
-                            
                             datosParaExcel.push({
-                                "Fecha": fecha,
-                                "Insumo": item.name,
-                                "Stock Ideal": item.ideal,
-                                "Stock Contado": actual,
-                                "Repuesto (Faltante)": reponer
+                                "Fecha": fecha, "Insumo": item.name, "Stock Ideal": item.ideal,
+                                "Stock Contado": actual, "Repuesto (Faltante)": reponer
                             });
                         }
                     });
@@ -564,19 +563,16 @@
 
                 if (datosParaExcel.length === 0) {
                     alert("Se encontraron fechas en la nube, pero no hay datos numéricos.");
-                    toggleLoader(false);
-                    return;
+                    toggleLoader(false); return;
                 }
 
                 const hoja = XLSX.utils.json_to_sheet(datosParaExcel);
                 const libro = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(libro, hoja, "Insumos");
                 XLSX.writeFile(libro, `Control_Insumos_CEV_${start}_al_${end}.xlsx`);
-                
                 showToast("Excel descargado correctamente");
 
             } catch (error) {
-                console.error("Error al exportar:", error);
                 alert("Hubo un problema al descargar los datos de la nube.");
             } finally {
                 toggleLoader(false);
@@ -587,9 +583,7 @@
             const toast = document.getElementById('toast');
             document.getElementById('toast-msg').textContent = message;
             toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
+            setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
         }
     </script>
 </body>
