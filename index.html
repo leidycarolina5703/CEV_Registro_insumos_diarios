@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f3f4f6; }
         ::-webkit-scrollbar-thumb { background: #9ca3af; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
@@ -18,7 +18,7 @@
         
         .loader {
             border: 3px solid #f3f3f3; border-radius: 50%;
-            border-top: 3px solid #154390; width: 24px; height: 24px;
+            border-top: 3px solid #154390; width: 20px; height: 20px;
             -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -27,9 +27,9 @@
 <body class="bg-gray-100 text-gray-800 font-sans antialiased">
 
     <div id="login-screen" class="fixed inset-0 bg-[#154390] flex items-center justify-center z-50 transition-opacity duration-300">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md mx-4">
+        <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-md mx-4">
             <div class="text-center mb-8">
-                <img src="Logo.png" alt="Logo CEV" class="h-24 mx-auto mb-4 object-contain">
+                <img src="Logo.png" alt="Logo CEV" class="h-20 sm:h-24 mx-auto mb-4 object-contain">
                 <h2 class="text-2xl font-bold text-[#154390]">Acceso Seguro</h2>
                 <p class="text-gray-500 text-sm mt-2">Ingresa tus credenciales para continuar</p>
             </div>
@@ -57,7 +57,7 @@
                 <div class="flex items-center">
                     <input type="checkbox" id="remember-me" class="w-4 h-4 text-[#154390] border-gray-300 rounded focus:ring-[#154390]">
                     <label for="remember-me" class="ml-2 block text-sm text-gray-700">
-                        Recordar mi sesión en este equipo
+                        Recordar sesión en este equipo
                     </label>
                 </div>
 
@@ -74,54 +74,54 @@
         </div>
     </div>
 
-    <div id="main-app" class="hidden max-w-4xl mx-auto p-4 sm:p-6 space-y-6 pb-12">
+    <div id="main-app" class="hidden max-w-3xl mx-auto p-2 sm:p-6 space-y-4 sm:space-y-6 pb-12">
         
-        <header class="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-200">
-            <div class="flex items-center gap-4">
-                <img src="Logo.png" alt="Logo CEV" class="h-16 w-auto object-contain">
+        <header class="bg-white rounded-xl shadow-md p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-4 border border-gray-200">
+            <div class="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+                <img src="Logo.png" alt="Logo CEV" class="h-12 sm:h-16 w-auto object-contain">
                 <div>
-                    <h1 class="text-2xl font-bold text-[#154390]">Control de Insumos</h1>
-                    <p class="text-gray-500 text-sm mt-1 flex items-center gap-1">
-                        <i class="fa-solid fa-cloud text-[#154390]"></i> Sincronizado en Firebase
+                    <h1 class="text-xl sm:text-2xl font-bold text-[#154390]">Control de Insumos</h1>
+                    <p class="text-gray-500 text-xs sm:text-sm mt-1 flex items-center justify-center sm:justify-start gap-1">
+                        <i class="fa-solid fa-cloud text-[#154390]"></i> Nube Activa
                     </p>
                 </div>
             </div>
 
-            <div class="flex flex-col items-end w-full md:w-auto gap-4">
-                <button onclick="logoutUser()" class="text-sm text-red-600 hover:text-red-800 font-semibold flex items-center gap-1 transition-colors">
+            <div class="flex flex-col items-center sm:items-end w-full sm:w-auto gap-3">
+                <button onclick="logoutUser()" class="text-xs sm:text-sm text-red-600 hover:text-red-800 font-semibold flex items-center gap-1 transition-colors">
                     <i class="fa-solid fa-power-off"></i> Cerrar Sesión
                 </button>
-                <div class="text-right">
-                    <label for="report-date" class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Fecha del registro</label>
-                    <div class="flex items-center gap-3">
+                <div class="w-full sm:w-auto flex flex-col items-center sm:items-end">
+                    <label for="report-date" class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 hidden sm:block">Fecha del registro</label>
+                    <div class="flex items-center gap-2 w-full justify-center sm:justify-end">
                         <div id="loading-spinner" class="loader hidden"></div>
-                        <input type="date" id="report-date" class="w-full md:w-auto border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#154390] bg-gray-50 text-[#154390] font-bold shadow-sm cursor-pointer hover:bg-gray-200 transition-colors">
+                        <input type="date" id="report-date" class="w-full sm:w-auto border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#154390] bg-gray-50 text-[#154390] font-bold shadow-sm cursor-pointer hover:bg-gray-200 transition-colors text-sm">
                     </div>
                 </div>
             </div>
         </header>
 
-        <div class="bg-white rounded-xl shadow-md p-4 border border-gray-200 flex flex-col sm:flex-row gap-4 justify-between items-center sticky top-0 z-10">
+        <div class="bg-white rounded-xl shadow-md p-3 sm:p-4 border border-gray-200 flex flex-col sm:flex-row gap-3 justify-between items-center sticky top-0 z-10">
             <div class="relative w-full sm:w-1/2">
-                <i class="fa-solid fa-search absolute left-3 top-3.5 text-gray-400"></i>
-                <input type="text" id="search-input" placeholder="Buscar insumo..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#154390] focus:border-transparent transition-all bg-gray-50">
+                <i class="fa-solid fa-search absolute left-3 top-2.5 sm:top-3.5 text-gray-400"></i>
+                <input type="text" id="search-input" placeholder="Buscar insumo..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#154390] focus:border-transparent transition-all bg-gray-50 text-sm">
             </div>
             <div class="flex w-full sm:w-auto">
-                <button onclick="clearAll()" class="w-full sm:w-auto px-6 py-2 text-gray-600 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                <button onclick="clearAll()" class="w-full sm:w-auto px-4 py-2 text-gray-600 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
                     <i class="fa-solid fa-trash-can"></i> Limpiar Día
                 </button>
             </div>
         </div>
 
         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-            <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
+            <div class="overflow-x-auto max-h-[60vh] overflow-y-auto">
                 <table class="w-full text-left border-collapse relative">
                     <thead class="sticky top-0 z-20 shadow-sm">
                         <tr class="bg-gray-200 border-b border-gray-300">
-                            <th class="p-4 font-semibold text-gray-700">Insumo</th>
-                            <th class="p-4 font-semibold text-gray-700 text-center w-24">Ideal</th>
-                            <th class="p-4 font-bold text-[#154390] text-center w-32">Stock Actual</th>
-                            <th class="p-4 font-semibold text-gray-700 text-center w-28">A Reponer</th>
+                            <th class="p-2 sm:p-4 text-xs sm:text-base font-semibold text-gray-700">Insumo</th>
+                            <th class="p-2 sm:p-4 text-xs sm:text-base font-semibold text-gray-700 text-center w-12 sm:w-20">Ideal</th>
+                            <th class="p-2 sm:p-4 text-xs sm:text-base font-bold text-[#154390] text-center w-20 sm:w-28">Stock</th>
+                            <th class="p-2 sm:p-4 text-xs sm:text-base font-semibold text-gray-700 text-center w-16 sm:w-24">Reponer</th>
                         </tr>
                     </thead>
                     <tbody id="table-body" class="divide-y divide-gray-200"></tbody>
@@ -129,28 +129,28 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-            <h2 class="text-xl font-bold text-[#154390] mb-4 border-b border-gray-100 pb-2 flex items-center gap-2">
-                <i class="fa-solid fa-file-excel text-green-600"></i> Exportar Historial desde la Nube
+        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6">
+            <h2 class="text-lg sm:text-xl font-bold text-[#154390] mb-3 sm:mb-4 border-b border-gray-100 pb-2 flex items-center gap-2">
+                <i class="fa-solid fa-file-excel text-green-600"></i> Exportar a Excel
             </h2>
-            <div class="flex flex-col md:flex-row items-end gap-4">
-                <div class="w-full md:w-1/3">
-                    <label class="block text-sm font-semibold text-gray-600 mb-2">Fecha Inicio</label>
-                    <input type="date" id="export-start" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#154390] bg-gray-50 text-gray-700">
+            <div class="flex flex-col sm:flex-row items-end gap-3">
+                <div class="w-full sm:w-1/3">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Inicio</label>
+                    <input type="date" id="export-start" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#154390] bg-gray-50 text-gray-700 text-sm">
                 </div>
-                <div class="w-full md:w-1/3">
-                    <label class="block text-sm font-semibold text-gray-600 mb-2">Fecha Fin</label>
-                    <input type="date" id="export-end" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#154390] bg-gray-50 text-gray-700">
+                <div class="w-full sm:w-1/3">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Fin</label>
+                    <input type="date" id="export-end" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#154390] bg-gray-50 text-gray-700 text-sm">
                 </div>
-                <div class="w-full md:w-1/3">
-                    <button onclick="generarExcel()" class="w-full px-4 py-2 text-white bg-green-600 hover:bg-green-700 rounded-lg font-medium transition-colors shadow-sm flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-download"></i> Descargar Excel
+                <div class="w-full sm:w-1/3">
+                    <button onclick="generarExcel()" class="w-full px-3 py-2 text-white bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-download"></i> Descargar
                     </button>
                 </div>
             </div>
         </div>
 
-        <div id="toast" class="fixed bottom-4 right-4 bg-[#154390] text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2 border border-gray-300">
+        <div id="toast" class="fixed bottom-4 right-4 bg-[#154390] text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2 border border-gray-300 text-sm sm:text-base">
             <i class="fa-solid fa-check-circle text-gray-200"></i>
             <span id="toast-msg">Mensaje</span>
         </div>
@@ -362,6 +362,7 @@
             }
         }
 
+        // --- RENDERIZADO AJUSTADO PARA MÓVILES ---
         function renderTable(filter = '') {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
@@ -387,17 +388,17 @@
                     const tr = document.createElement('tr');
                     tr.className = rowClass;
                     tr.innerHTML = `
-                        <td class="p-3 border-b border-gray-200 font-medium text-gray-700">${item.name}</td>
-                        <td class="p-3 border-b border-gray-200 text-center font-bold text-gray-500">${item.ideal}</td>
-                        <td class="p-3 border-b border-gray-200 text-center">
+                        <td class="p-2 sm:p-3 border-b border-gray-200 font-medium text-gray-700 text-xs sm:text-base leading-tight">${item.name}</td>
+                        <td class="p-2 sm:p-3 border-b border-gray-200 text-center font-bold text-gray-500 text-xs sm:text-base">${item.ideal}</td>
+                        <td class="p-2 sm:p-3 border-b border-gray-200 text-center">
                             <input type="number" min="0" 
                                 value="${item.actual}" 
                                 oninput="window.updateItem(${index}, this.value)"
-                                class="w-20 text-center py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#154390] bg-white shadow-sm font-bold text-[#154390]"
+                                class="w-14 sm:w-20 text-center py-1 sm:py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#154390] bg-white shadow-sm font-bold text-[#154390] text-sm sm:text-base"
                                 placeholder="-"
                             >
                         </td>
-                        <td class="p-3 border-b border-gray-200 text-center ${reponerClass} text-lg" id="reponer-${index}">
+                        <td class="p-2 sm:p-3 border-b border-gray-200 text-center ${reponerClass} text-sm sm:text-lg" id="reponer-${index}">
                             ${actualValue !== '' ? reponerValue : '-'}
                         </td>
                     `;
@@ -419,15 +420,15 @@
                 reponerCell.textContent = reponerValue;
                 
                 if (reponerValue > 0) {
-                    reponerCell.className = 'p-3 border-b border-gray-200 text-center text-red-600 font-bold text-lg';
+                    reponerCell.className = 'p-2 sm:p-3 border-b border-gray-200 text-center text-red-600 font-bold text-sm sm:text-lg';
                     row.className = 'bg-gray-50 hover:bg-gray-100 transition-colors';
                 } else {
-                    reponerCell.className = 'p-3 border-b border-gray-200 text-center text-green-600 font-bold text-lg';
+                    reponerCell.className = 'p-2 sm:p-3 border-b border-gray-200 text-center text-green-600 font-bold text-sm sm:text-lg';
                     row.className = 'bg-gray-50 hover:bg-gray-100 transition-colors';
                 }
             } else {
                 reponerCell.textContent = '-';
-                reponerCell.className = 'p-3 border-b border-gray-200 text-center text-gray-400 text-lg';
+                reponerCell.className = 'p-2 sm:p-3 border-b border-gray-200 text-center text-gray-400 text-sm sm:text-lg';
                 row.className = 'hover:bg-gray-100 transition-colors';
             }
 
