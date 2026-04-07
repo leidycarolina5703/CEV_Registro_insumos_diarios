@@ -18,6 +18,21 @@
             -webkit-appearance: none; 
             margin: 0; 
         }
+        
+        /* Loader de carga */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #154390;
+            width: 24px;
+            height: 24px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans antialiased pb-12">
@@ -27,14 +42,17 @@
         <header class="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-200">
             <div>
                 <h1 class="text-2xl font-bold text-[#154390] flex items-center gap-2">
-                    <i class="fa-solid fa-notes-medical"></i>
+                    <i class="fa-solid fa-cloud"></i>
                     Control de Insumos
                 </h1>
-                <p class="text-gray-500 text-sm mt-1">Registra el stock para calcular la reposición</p>
+                <p class="text-gray-500 text-sm mt-1">Sincronizado en la nube con Firebase</p>
             </div>
             <div class="text-right flex flex-col items-end w-full md:w-auto">
                 <label for="report-date" class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2">Fecha del registro</label>
-                <input type="date" id="report-date" class="w-full md:w-auto border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#154390] bg-gray-50 text-[#154390] font-bold shadow-sm cursor-pointer hover:bg-gray-200 transition-colors">
+                <div class="flex items-center gap-3">
+                    <div id="loading-spinner" class="loader hidden"></div>
+                    <input type="date" id="report-date" class="w-full md:w-auto border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#154390] bg-gray-50 text-[#154390] font-bold shadow-sm cursor-pointer hover:bg-gray-200 transition-colors">
+                </div>
             </div>
         </header>
 
@@ -70,7 +88,7 @@
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
             <h2 class="text-xl font-bold text-[#154390] mb-4 border-b border-gray-100 pb-2 flex items-center gap-2">
                 <i class="fa-solid fa-file-excel text-green-600"></i> 
-                Exportar Historial a Excel
+                Exportar Historial desde la Nube
             </h2>
             <div class="flex flex-col md:flex-row items-end gap-4">
                 <div class="w-full md:w-1/3">
@@ -96,7 +114,31 @@
 
     </div>
 
-    <script>
+    <script type="module">
+        // 1. IMPORTACIONES DE FIREBASE
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // =====================================================================
+        // 🔥 PEGA TU CONFIGURACIÓN DE FIREBASE AQUÍ 🔥
+        // Reemplaza todo el contenido dentro de las llaves { }
+        // =====================================================================
+        const firebaseConfig = {
+             apiKey: "AIzaSyBSzvWwy61Zexsy4dBSCJZtCChBLge7Nlk",
+  authDomain: "cev-registro-insumos-diarios.firebaseapp.com",
+  projectId: "cev-registro-insumos-diarios",
+  storageBucket: "cev-registro-insumos-diarios.firebasestorage.app",
+  messagingSenderId: "413989996861",
+  appId: "1:413989996861:web:fc3803b16ea1a998b51d54",
+  measurementId: "G-47QTZXMHSB"
+        };
+        // =====================================================================
+
+        // Inicializar Firebase y Firestore
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Datos por defecto (Plantilla base)
         const defaultData = [
             { name: "Catéter 24", ideal: 20 }, { name: "Catéter 22", ideal: 20 }, { name: "Catéter 20", ideal: 20 },
             { name: "Catéter 18", ideal: 5 }, { name: "Catéter 16", ideal: 5 }, { name: "Catéter 14", ideal: 5 },
@@ -132,40 +174,28 @@
             { name: "Fortiflora Canino", ideal: 15 }, { name: "Fortiflora Felino", ideal: 5 }
         ];
 
-        let insumosHistory = {};
         let inventory = [];
 
-        function init() {
-            migrarDatosViejos();
+        // Inicializar app
+        async function init() {
             setFechasIniciales();
-            loadData();
-            renderTable();
-
-            // Escuchar cambios en el buscador
+            await loadDataFromFirebase();
+            
+            // Listeners
             document.getElementById('search-input').addEventListener('input', (e) => {
                 renderTable(e.target.value.toLowerCase());
             });
 
-            // Escuchar cambios en la fecha principal para cargar el día seleccionado
-            document.getElementById('report-date').addEventListener('change', () => {
-                loadData();
-                renderTable(document.getElementById('search-input').value.toLowerCase());
+            document.getElementById('report-date').addEventListener('change', async () => {
+                await loadDataFromFirebase();
             });
         }
 
-        // Evitar perder los datos de la versión anterior
-        function migrarDatosViejos() {
-            const historyGuardado = localStorage.getItem('insumosHistory');
-            if (historyGuardado) {
-                insumosHistory = JSON.parse(historyGuardado);
-            } else {
-                const viejoGuardado = localStorage.getItem('insumosData');
-                if (viejoGuardado) {
-                    const todayStr = obtenerFechaString(new Date());
-                    insumosHistory[todayStr] = JSON.parse(viejoGuardado);
-                    localStorage.setItem('insumosHistory', JSON.stringify(insumosHistory));
-                }
-            }
+        // Mostrar u ocultar spinner
+        function toggleLoader(show) {
+            const spinner = document.getElementById('loading-spinner');
+            if(show) spinner.classList.remove('hidden');
+            else spinner.classList.add('hidden');
         }
 
         function obtenerFechaString(dateObj) {
@@ -181,36 +211,59 @@
             const exportEnd = document.getElementById('export-end');
             
             const todayStr = obtenerFechaString(new Date());
-            
             dateInput.value = todayStr;
             exportStart.value = todayStr;
             exportEnd.value = todayStr;
         }
 
-        function loadData() {
+        // CARGAR DESDE FIREBASE
+        async function loadDataFromFirebase() {
+            toggleLoader(true);
             const fechaActual = document.getElementById('report-date').value;
             
-            if (insumosHistory[fechaActual]) {
-                inventory = insumosHistory[fechaActual];
-                
-                // Mezclar por si se añadieron nuevos insumos a la lista por defecto
-                if(inventory.length !== defaultData.length) {
-                    defaultData.forEach(defaultItem => {
-                        if(!inventory.find(i => i.name === defaultItem.name)) {
-                            inventory.push({...defaultItem, actual: ''});
-                        }
-                    });
+            try {
+                // Buscar el documento en la colección "inventarios" que tenga por ID la fecha (ej: 2026-04-06)
+                const docRef = doc(db, "inventarios", fechaActual);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    inventory = docSnap.data().items;
+                    
+                    // Verificar si se agregaron nuevos insumos a defaultData que no estén en la nube
+                    if(inventory.length !== defaultData.length) {
+                        defaultData.forEach(defaultItem => {
+                            if(!inventory.find(i => i.name === defaultItem.name)) {
+                                inventory.push({...defaultItem, actual: ''});
+                            }
+                        });
+                    }
+                } else {
+                    // Si no hay datos para hoy, crear lista en blanco
+                    inventory = defaultData.map(item => ({ ...item, actual: '' }));
                 }
-            } else {
-                // Si no hay registro para esta fecha, creamos uno en blanco
-                inventory = defaultData.map(item => ({ ...item, actual: '' }));
+            } catch (error) {
+                console.error("Error al cargar de Firebase:", error);
+                showToast("Error de conexión a la base de datos");
+            } finally {
+                renderTable(document.getElementById('search-input').value.toLowerCase());
+                toggleLoader(false);
             }
         }
 
-        function saveData() {
+        // GUARDAR EN FIREBASE
+        let saveTimeout = null; // Para evitar saturar Firebase con muchas peticiones seguidas
+        async function saveDataToFirebase() {
             const fechaActual = document.getElementById('report-date').value;
-            insumosHistory[fechaActual] = inventory;
-            localStorage.setItem('insumosHistory', JSON.stringify(insumosHistory));
+            toggleLoader(true);
+
+            try {
+                await setDoc(doc(db, "inventarios", fechaActual), { items: inventory });
+            } catch (error) {
+                console.error("Error al guardar en Firebase:", error);
+                showToast("Error al guardar. Revisa tu conexión.");
+            } finally {
+                toggleLoader(false);
+            }
         }
 
         function renderTable(filter = '') {
@@ -243,7 +296,7 @@
                         <td class="p-3 border-b border-gray-200 text-center">
                             <input type="number" min="0" 
                                 value="${item.actual}" 
-                                oninput="updateItem(${index}, this.value)"
+                                oninput="window.updateItem(${index}, this.value)"
                                 class="w-20 text-center py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#154390] bg-white shadow-sm font-bold text-[#154390]"
                                 placeholder="-"
                             >
@@ -257,11 +310,12 @@
             });
         }
 
-        function updateItem(index, value) {
+        // Exponer la función updateItem al window para que el HTML pueda llamarla
+        window.updateItem = function(index, value) {
             if (value !== '' && parseInt(value) < 0) value = '0';
             inventory[index].actual = value;
-            saveData();
             
+            // Actualizar interfaz al instante sin re-renderizar todo
             const actualValue = value !== '' ? parseInt(value) : '';
             const reponerCell = document.getElementById(`reponer-${index}`);
             const row = reponerCell.parentElement;
@@ -282,21 +336,27 @@
                 reponerCell.className = 'p-3 border-b border-gray-200 text-center text-gray-400 text-lg';
                 row.className = 'hover:bg-gray-100 transition-colors';
             }
+
+            // Guardar en la nube con "Debounce" (espera 1 segundo tras la última tecla pulsada para no colapsar Firebase)
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                saveDataToFirebase();
+            }, 1000);
         }
 
-        function clearAll() {
+        window.clearAll = async function() {
             const fechaActual = document.getElementById('report-date').value;
-            if(confirm(`¿Deseas limpiar todos los datos del día ${fechaActual}?`)) {
+            if(confirm(`¿Deseas borrar de la nube todos los datos del día ${fechaActual}?`)) {
                 inventory = inventory.map(item => ({ ...item, actual: '' }));
-                saveData();
-                document.getElementById('search-input').value = '';
                 renderTable();
-                showToast("Día limpiado");
+                await saveDataToFirebase();
+                document.getElementById('search-input').value = '';
+                showToast("Día limpiado en la nube");
             }
         }
 
-        // LÓGICA PARA EXPORTAR A EXCEL
-        function generarExcel() {
+        // OBTENER EXCEL DESDE LA NUBE
+        window.generarExcel = async function() {
             const start = document.getElementById('export-start').value;
             const end = document.getElementById('export-end').value;
 
@@ -304,55 +364,73 @@
                 showToast("Selecciona fecha de inicio y fin");
                 return;
             }
-
             if (start > end) {
                 showToast("La fecha de inicio debe ser anterior a la de fin");
                 return;
             }
 
-            // Obtener fechas registradas que estén dentro del rango
-            const fechasRegistradas = Object.keys(insumosHistory).filter(d => d >= start && d <= end).sort();
+            showToast("Consultando a la nube...");
+            toggleLoader(true);
 
-            if (fechasRegistradas.length === 0) {
-                alert("No hay ningún registro guardado en el sistema para este rango de fechas.");
-                return;
-            }
-
-            const datosParaExcel = [];
-
-            // Construir las filas del Excel
-            fechasRegistradas.forEach(fecha => {
-                const datosDelDia = insumosHistory[fecha];
+            try {
+                // Consultar a Firestore por rango de fechas
+                const q = query(
+                    collection(db, "inventarios"), 
+                    where("__name__", ">=", start), 
+                    where("__name__", "<=", end)
+                );
                 
-                datosDelDia.forEach(item => {
-                    if (item.actual !== '') {
-                        const actual = parseInt(item.actual);
-                        const reponer = Math.max(0, item.ideal - actual);
-                        
-                        datosParaExcel.push({
-                            "Fecha": fecha,
-                            "Insumo": item.name,
-                            "Stock Ideal": item.ideal,
-                            "Stock Contado": actual,
-                            "Repuesto (Faltante)": reponer
-                        });
-                    }
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    alert("No se encontraron registros en la nube para estas fechas.");
+                    toggleLoader(false);
+                    return;
+                }
+
+                const datosParaExcel = [];
+
+                // Recorrer los documentos obtenidos
+                querySnapshot.forEach((doc) => {
+                    const fecha = doc.id; // El ID del documento es la fecha
+                    const items = doc.data().items;
+                    
+                    items.forEach(item => {
+                        if (item.actual !== '') {
+                            const actual = parseInt(item.actual);
+                            const reponer = Math.max(0, item.ideal - actual);
+                            
+                            datosParaExcel.push({
+                                "Fecha": fecha,
+                                "Insumo": item.name,
+                                "Stock Ideal": item.ideal,
+                                "Stock Contado": actual,
+                                "Repuesto (Faltante)": reponer
+                            });
+                        }
+                    });
                 });
-            });
 
-            if (datosParaExcel.length === 0) {
-                alert("Se encontraron las fechas, pero no hay datos numéricos ingresados en esos días.");
-                return;
+                if (datosParaExcel.length === 0) {
+                    alert("Se encontraron fechas en la nube, pero no hay datos numéricos.");
+                    toggleLoader(false);
+                    return;
+                }
+
+                // Crear y descargar Excel
+                const hoja = XLSX.utils.json_to_sheet(datosParaExcel);
+                const libro = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(libro, hoja, "Insumos");
+                XLSX.writeFile(libro, `Control_Insumos_${start}_al_${end}.xlsx`);
+                
+                showToast("Excel descargado correctamente");
+
+            } catch (error) {
+                console.error("Error al exportar:", error);
+                alert("Hubo un problema al descargar los datos de la nube.");
+            } finally {
+                toggleLoader(false);
             }
-
-            // Crear el archivo usando SheetJS
-            const hoja = XLSX.utils.json_to_sheet(datosParaExcel);
-            const libro = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(libro, hoja, "Insumos");
-            
-            // Descargar
-            XLSX.writeFile(libro, `Control_Insumos_${start}_al_${end}.xlsx`);
-            showToast("Excel descargado correctamente");
         }
 
         function showToast(message) {
@@ -364,6 +442,7 @@
             }, 3000);
         }
 
+        // Arrancar la app
         window.onload = init;
     </script>
 </body>
