@@ -246,38 +246,91 @@
 
         // --- LÓGICA DE LA APLICACIÓN ---
         const defaultData = [
-            { name: "Catéter 24", ideal: 20 }, { name: "Catéter 22", ideal: 20 }, { name: "Catéter 20", ideal: 20 },
-            { name: "Catéter 18", ideal: 5 }, { name: "Catéter 16", ideal: 5 }, { name: "Catéter 14", ideal: 5 },
-            { name: "Llave 3 vías", ideal: 5 }, { name: "Tapones", ideal: 15 }, { name: "Pericraneal pequeño", ideal: 5 },
-            { name: "Pericraneal grueso", ideal: 5 }, { name: "Microgoteo", ideal: 15 }, { name: "Macrogoteo", ideal: 15 },
-            { name: "Buretrol", ideal: 5 }, { name: "Venobomba", ideal: 10 }, { name: "Máscara de nebulización", ideal: 5 },
-            { name: "Sonda gato", ideal: 5 }, { name: "Extensiones", ideal: 10 }, { name: "Sonda 5", ideal: 5 },
-            { name: "Sonda 6", ideal: 5 }, { name: "Sonda 8", ideal: 5 }, { name: "Sonda 10", ideal: 5 },
-            { name: "Sonda 12", ideal: 5 }, { name: "Sonda 14", ideal: 5 }, { name: "Sonda 16", ideal: 5 },
-            { name: "Sonda 18", ideal: 5 }, { name: "Vestido XS", ideal: 1 }, { name: "Vestido S", ideal: 1 },
-            { name: "Vestido M", ideal: 1 }, { name: "Vestido L", ideal: 1 }, { name: "Vestido XL", ideal: 1 },
-            { name: "Metronidazol", ideal: 5 }, { name: "Pregabalina 75 mg", ideal: 15 }, { name: "Trimetoprim", ideal: 5 },
-            { name: "Esomeprazol", ideal: 5 }, { name: "Silimarina", ideal: 5 }, { name: "Bladuvil", ideal: 5 },
-            { name: "Mirtazapina", ideal: 5 }, { name: "Amoxicilina", ideal: 5 }, { name: "Ursacol", ideal: 5 },
-            { name: "Flunarizina", ideal: 5 }, { name: "Cefalexina", ideal: 5 }, { name: "Sulfadiazina", ideal: 5 },
-            { name: "Trazodona", ideal: 10 }, { name: "Pregabalina 25 mg", ideal: 15 }, { name: "Tramadol", ideal: 5 },
-            { name: "Domperidona (Domevoro)", ideal: 5 }, { name: "Metronidazol vial 100 mg", ideal: 2 },
-            { name: "Ampicilina", ideal: 4 }, { name: "Ceftriaxona", ideal: 4 }, { name: "Omeprazol inyectable", ideal: 5 },
-            { name: "Ampicilina + sulbactam", ideal: 5 }, { name: "Cefalotina", ideal: 5 }, { name: "Gluconato de calcio", ideal: 4 },
-            { name: "Cloruro de potasio", ideal: 5 }, { name: "Ginkgo biloba", ideal: 5 }, { name: "Melatonina", ideal: 5 },
-            { name: "Omega 3", ideal: 5 }, { name: "Vitamina C", ideal: 5 }, { name: "Vitamina E", ideal: 5 },
-            { name: "Ampolla de metilprednisolona", ideal: 2 }, { name: "Ondansetrón", ideal: 5 }, { name: "Ampolla Fluimucil", ideal: 5 },
-            { name: "Complejo B", ideal: 3 }, { name: "Tiamina", ideal: 3 }, { name: "Cloruro de sodio (ampolla)", ideal: 10 },
-            { name: "Vendaje Koban", ideal: 3 }, { name: "Vendaje de gasa", ideal: 3 }, { name: "Vendaje Algodón", ideal: 3 },
-            { name: "Perfusora de 50", ideal: 2 }, { name: "Perfusora de 20", ideal: 2 }, { name: "Jeringa de 1mL", ideal: 15 },
-            { name: "Jeringa de 3mL", ideal: 15 }, { name: "Jeringa de 5mL", ideal: 15 }, { name: "Jeringa de 10mL", ideal: 10 },
-            { name: "Jeringa de 20mL", ideal: 5 }, { name: "Jeringa de 50mL", ideal: 2 }, { name: "Jeringa de 60mL", ideal: 2 },
-            { name: "Hartmann 500 mL", ideal: 10 }, { name: "Solución salina 500mL", ideal: 5 }, { name: "Solución salina 250mL", ideal: 5 },
-            { name: "Solución salina 100mL", ideal: 5 }, { name: "Solución Hartmann 1 L", ideal: 5 }, { name: "Gelofusine", ideal: 1 },
-            { name: "Agua estéril", ideal: 1 }, { name: "Libra I/D Canino", ideal: 3 }, { name: "Libra I/D Gato", ideal: 3 },
-            { name: "Arena gato", ideal: 4 }, { name: "Tapetes", ideal: 3 }, { name: "Lata EN", ideal: 2 },
-            { name: "Lata ID Canino", ideal: 2 }, { name: "Lata ID Felino", ideal: 2 }, { name: "Lata AD", ideal: 2 },
-            { name: "Fortiflora Canino", ideal: 15 }, { name: "Fortiflora Felino", ideal: 5 }
+            { name: "Catéter 24", ideal: 20 }, 
+            { name: "Catéter 22", ideal: 20 }, 
+            { name: "Catéter 20", ideal: 20 },
+            { name: "Llave 3 vías", ideal: 5 }, 
+            { name: "Tapones", ideal: 15 }, 
+            { name: "Pericraneal pequeño", ideal: 5 },
+            { name: "Pericraneal grueso", ideal: 5 }, 
+            { name: "Microgoteo", ideal: 15 }, 
+            { name: "Macrogoteo", ideal: 15 },
+            { name: "Buretrol", ideal: 5 }, 
+            { name: "Venobomba", ideal: 10 }, 
+            { name: "Máscara de nebulización", ideal: 5 },
+            { name: "Sonda gato", ideal: 5 }, 
+            { name: "Extensiones", ideal: 10 }, 
+            { name: "Sonda 5", ideal: 5 },
+            { name: "Sonda 6", ideal: 5 }, 
+            { name: "Sonda 8", ideal: 5 }, 
+            { name: "Sonda 10", ideal: 3 },
+            { name: "Sonda 12", ideal: 3 }, 
+            { name: "Sonda 14", ideal: 3 },
+            { name: "Sonda 16", ideal: 3 }, 
+            { name: "Sonda 18", ideal: 3 },
+            { name: "Metronidazol", ideal: 5 }, 
+            { name: "Pregabalina 75 mg", ideal: 15 }, 
+            { name: "Trimetoprim", ideal: 5 },
+            { name: "Esomeprazol", ideal: 5 }, 
+            { name: "Silimarina", ideal: 5 }, 
+            { name: "Bladuvil", ideal: 5 },
+            { name: "Mirtazapina", ideal: 5 }, 
+            { name: "Amoxicilina", ideal: 5 }, 
+            { name: "Ursacol", ideal: 5 },
+            { name: "Flunarizina", ideal: 5 }, 
+            { name: "Cefalexina", ideal: 5 }, 
+            { name: "Sulfadiazina", ideal: 5 },
+            { name: "Trazodona", ideal: 10 }, 
+            { name: "Pregabalina 25 mg", ideal: 15 }, 
+            { name: "Tramadol", ideal: 20 },
+            { name: "Domperidona (Domevoro)", ideal: 5 }, 
+            { name: "Metronidazol vial 100 mg", ideal: 2 },
+            { name: "Ampicilina", ideal: 4 }, 
+            { name: "Ceftriaxona", ideal: 4 }, 
+            { name: "Omeprazol inyectable", ideal: 5 },
+            { name: "Ampicilina + sulbactam", ideal: 5 }, 
+            { name: "Cefalotina", ideal: 5 }, 
+            { name: "Gluconato de calcio", ideal: 4 },
+            { name: "Cloruro de potasio", ideal: 5 }, 
+            { name: "Ginkgo biloba", ideal: 5 }, 
+            { name: "Melatonina", ideal: 5 },
+            { name: "Omega 3", ideal: 5 }, 
+            { name: "Vitamina C", ideal: 5 }, 
+            { name: "Vitamina E", ideal: 5 },
+            { name: "Ampolla de metilprednisolona", ideal: 2 }, 
+            { name: "Ondansetrón", ideal: 5 }, 
+            { name: "Ampolla Fluimucil", ideal: 5 },
+            { name: "Complejo B", ideal: 3 }, 
+            { name: "Tiamina", ideal: 3 }, 
+            { name: "Cloruro de sodio (ampolla)", ideal: 10 },
+            { name: "Vendaje Koban", ideal: 3 }, 
+            { name: "Vendaje de gasa", ideal: 3 }, 
+            { name: "Vendaje Algodón", ideal: 3 },
+            { name: "Perfusora de 50", ideal: 2 }, 
+            { name: "Perfusora de 20", ideal: 2 }, 
+            { name: "Jeringa de 1mL", ideal: 20 },
+            { name: "Jeringa de 3mL", ideal: 20 }, 
+            { name: "Jeringa de 5mL", ideal: 20 }, 
+            { name: "Jeringa de 10mL", ideal: 10 },
+            { name: "Jeringa de 20mL", ideal: 5 }, 
+            { name: "Jeringa de 50mL", ideal: 2 }, 
+            { name: "Jeringa de 60mL", ideal: 2 },
+            { name: "Hartmann 500 mL", ideal: 10 }, 
+            { name: "Solución salina 500mL", ideal: 5 }, 
+            { name: "Solución salina 250mL", ideal: 5 },
+            { name: "Solución salina 100mL", ideal: 5 }, 
+            { name: "Solución Hartmann 1 L", ideal: 5 }, 
+            { name: "Gelofusine", ideal: 1 },
+            { name: "Agua estéril", ideal: 1 }, 
+            { name: "Libra I/D Canino", ideal: 3 }, 
+            { name: "Libra I/D Gato", ideal: 3 },
+            { name: "Arena gato", ideal: 4 }, 
+            { name: "Tapetes", ideal: 3 }, 
+            { name: "Lata EN", ideal: 2 },
+            { name: "Lata ID Felino", ideal: 2 }, 
+            { name: "Lata AD", ideal: 2 },
+            { name: "Fortiflora Canino", ideal: 15 }, 
+            { name: "Fortiflora Felino", ideal: 5 }
         ];
 
         let inventory = [];
@@ -328,14 +381,22 @@
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
-                    inventory = docSnap.data().items;
-                    if(inventory.length !== defaultData.length) {
-                        defaultData.forEach(defaultItem => {
-                            if(!inventory.find(i => i.name === defaultItem.name)) {
-                                inventory.push({...defaultItem, actual: ''});
-                            }
-                        });
-                    }
+                    let cloudData = docSnap.data().items;
+                    
+                    // Filtrar los datos de la nube para eliminar insumos que ya no están en la lista por defecto
+                    inventory = cloudData.filter(cloudItem => 
+                        defaultData.some(defaultItem => defaultItem.name === cloudItem.name)
+                    );
+
+                    // Actualizar las cantidades ideales si cambiaron, o agregar insumos nuevos
+                    defaultData.forEach(defaultItem => {
+                        const existingItem = inventory.find(i => i.name === defaultItem.name);
+                        if (existingItem) {
+                            existingItem.ideal = defaultItem.ideal; // Actualiza el ideal
+                        } else {
+                            inventory.push({...defaultItem, actual: ''}); // Agrega si es nuevo
+                        }
+                    });
                 } else {
                     inventory = defaultData.map(item => ({ ...item, actual: '' }));
                 }
@@ -362,7 +423,6 @@
             }
         }
 
-        // --- RENDERIZADO AJUSTADO PARA MÓVILES ---
         function renderTable(filter = '') {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
