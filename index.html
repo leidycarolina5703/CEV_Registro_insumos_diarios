@@ -14,44 +14,84 @@
         ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
         
         input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            margin: 0; 
-        }
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         
-        /* Loader de carga */
         .loader {
-            border: 3px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 3px solid #154390;
-            width: 24px;
-            height: 24px;
-            -webkit-animation: spin 1s linear infinite; /* Safari */
-            animation: spin 1s linear infinite;
+            border: 3px solid #f3f3f3; border-radius: 50%;
+            border-top: 3px solid #154390; width: 24px; height: 24px;
+            -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans antialiased pb-12">
+<body class="bg-gray-100 text-gray-800 font-sans antialiased">
 
-    <div class="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
+    <div id="login-screen" class="fixed inset-0 bg-[#154390] flex items-center justify-center z-50 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md mx-4">
+            <div class="text-center mb-8">
+                <div class="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-shield-halved text-3xl text-[#154390]"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Acceso Seguro</h2>
+                <p class="text-gray-500 text-sm mt-2">Ingresa tus credenciales para continuar</p>
+            </div>
+            
+            <form id="login-form" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Correo Electrónico</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-envelope absolute left-3 top-3 text-gray-400"></i>
+                        <input type="email" id="email-input" required class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#154390] focus:border-transparent bg-gray-50" placeholder="usuario@clinica.com">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Contraseña</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3 top-3 text-gray-400"></i>
+                        <input type="password" id="password-input" required class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#154390] focus:border-transparent bg-gray-50" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="checkbox" id="remember-me" class="w-4 h-4 text-[#154390] border-gray-300 rounded focus:ring-[#154390]">
+                    <label for="remember-me" class="ml-2 block text-sm text-gray-700">
+                        Recordar mi sesión en este equipo
+                    </label>
+                </div>
+
+                <div id="login-error" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span id="login-error-text">Credenciales incorrectas</span>
+                </div>
+
+                <button type="submit" id="btn-login" class="w-full py-2.5 bg-[#154390] text-white rounded-lg font-bold hover:bg-blue-800 transition-colors shadow-md flex justify-center items-center gap-2">
+                    <span>Ingresar al Sistema</span>
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden max-w-4xl mx-auto p-4 sm:p-6 space-y-6 pb-12">
         
         <header class="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-200">
             <div>
                 <h1 class="text-2xl font-bold text-[#154390] flex items-center gap-2">
-                    <i class="fa-solid fa-cloud"></i>
-                    Control de Insumos
+                    <i class="fa-solid fa-cloud"></i> Control de Insumos
                 </h1>
                 <p class="text-gray-500 text-sm mt-1">Sincronizado en la nube con Firebase</p>
             </div>
-            <div class="text-right flex flex-col items-end w-full md:w-auto">
-                <label for="report-date" class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2">Fecha del registro</label>
-                <div class="flex items-center gap-3">
-                    <div id="loading-spinner" class="loader hidden"></div>
-                    <input type="date" id="report-date" class="w-full md:w-auto border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#154390] bg-gray-50 text-[#154390] font-bold shadow-sm cursor-pointer hover:bg-gray-200 transition-colors">
+            <div class="flex flex-col items-end w-full md:w-auto gap-4">
+                <button onclick="logoutUser()" class="text-sm text-red-600 hover:text-red-800 font-semibold flex items-center gap-1 transition-colors">
+                    <i class="fa-solid fa-power-off"></i> Cerrar Sesión
+                </button>
+                <div class="text-right">
+                    <label for="report-date" class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Fecha del registro</label>
+                    <div class="flex items-center gap-3">
+                        <div id="loading-spinner" class="loader hidden"></div>
+                        <input type="date" id="report-date" class="w-full md:w-auto border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#154390] bg-gray-50 text-[#154390] font-bold shadow-sm cursor-pointer hover:bg-gray-200 transition-colors">
+                    </div>
                 </div>
             </div>
         </header>
@@ -79,16 +119,14 @@
                             <th class="p-4 font-semibold text-gray-700 text-center w-28">A Reponer</th>
                         </tr>
                     </thead>
-                    <tbody id="table-body" class="divide-y divide-gray-200">
-                        </tbody>
+                    <tbody id="table-body" class="divide-y divide-gray-200"></tbody>
                 </table>
             </div>
         </div>
 
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
             <h2 class="text-xl font-bold text-[#154390] mb-4 border-b border-gray-100 pb-2 flex items-center gap-2">
-                <i class="fa-solid fa-file-excel text-green-600"></i> 
-                Exportar Historial desde la Nube
+                <i class="fa-solid fa-file-excel text-green-600"></i> Exportar Historial desde la Nube
             </h2>
             <div class="flex flex-col md:flex-row items-end gap-4">
                 <div class="w-full md:w-1/3">
@@ -111,34 +149,96 @@
             <i class="fa-solid fa-check-circle text-gray-200"></i>
             <span id="toast-msg">Mensaje</span>
         </div>
-
     </div>
 
     <script type="module">
-        // 1. IMPORTACIONES DE FIREBASE
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-        // =====================================================================
-        // 🔥 PEGA TU CONFIGURACIÓN DE FIREBASE AQUÍ 🔥
-        // Reemplaza todo el contenido dentro de las llaves { }
-        // =====================================================================
+        // TUS LLAVES REALES DE FIREBASE
         const firebaseConfig = {
-             apiKey: "AIzaSyBSzvWwy61Zexsy4dBSCJZtCChBLge7Nlk",
-  authDomain: "cev-registro-insumos-diarios.firebaseapp.com",
-  projectId: "cev-registro-insumos-diarios",
-  storageBucket: "cev-registro-insumos-diarios.firebasestorage.app",
-  messagingSenderId: "413989996861",
-  appId: "1:413989996861:web:fc3803b16ea1a998b51d54",
-  measurementId: "G-47QTZXMHSB"
+            apiKey: "AIzaSyBSzvWwy61Zexsy4dBSCJZtCChBLge7Nlk",
+            authDomain: "cev-registro-insumos-diarios.firebaseapp.com",
+            projectId: "cev-registro-insumos-diarios",
+            storageBucket: "cev-registro-insumos-diarios.firebasestorage.app",
+            messagingSenderId: "413989996861",
+            appId: "1:413989996861:web:fc3803b16ea1a998b51d54",
+            measurementId: "G-47QTZXMHSB"
         };
-        // =====================================================================
 
-        // Inicializar Firebase y Firestore
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        // Datos por defecto (Plantilla base)
+        // --- SISTEMA DE AUTENTICACIÓN ---
+        
+        // Escuchar si hay alguien logueado o no
+        onAuthStateChanged(auth, (user) => {
+            const loginScreen = document.getElementById('login-screen');
+            const mainApp = document.getElementById('main-app');
+            
+            if (user) {
+                // Usuario validado: ocultar login, mostrar app y cargar datos
+                loginScreen.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                initApp(); 
+            } else {
+                // No hay usuario: mostrar login, ocultar app
+                loginScreen.classList.remove('hidden');
+                mainApp.classList.add('hidden');
+            }
+        });
+
+        // Manejar el formulario de Login
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email-input').value;
+            const password = document.getElementById('password-input').value;
+            const rememberMe = document.getElementById('remember-me').checked;
+            const errorBox = document.getElementById('login-error');
+            const btnLogin = document.getElementById('btn-login');
+
+            errorBox.classList.add('hidden');
+            btnLogin.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Procesando...';
+            btnLogin.disabled = true;
+
+            try {
+                // Configurar si recuerda la sesión (Local = recuerda siempre, Session = se borra al cerrar pestaña)
+                const persistenceType = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+                await setPersistence(auth, persistenceType);
+                
+                // Intentar ingresar
+                await signInWithEmailAndPassword(auth, email, password);
+                // Si funciona, el onAuthStateChanged se disparará automáticamente
+                
+            } catch (error) {
+                errorBox.classList.remove('hidden');
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    document.getElementById('login-error-text').innerText = "Correo o contraseña incorrectos.";
+                } else {
+                    document.getElementById('login-error-text').innerText = "Ocurrió un error. Intenta de nuevo.";
+                }
+            } finally {
+                btnLogin.innerHTML = '<span>Ingresar al Sistema</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>';
+                btnLogin.disabled = false;
+            }
+        });
+
+        // Función global para cerrar sesión (exponemos al window)
+        window.logoutUser = () => {
+            signOut(auth).then(() => {
+                // Al cerrar, limpiar los campos del login por seguridad
+                document.getElementById('email-input').value = '';
+                document.getElementById('password-input').value = '';
+            }).catch((error) => {
+                console.error("Error cerrando sesión:", error);
+            });
+        };
+
+
+        // --- LÓGICA DE LA APLICACIÓN (Solo arranca si hay login) ---
+
         const defaultData = [
             { name: "Catéter 24", ideal: 20 }, { name: "Catéter 22", ideal: 20 }, { name: "Catéter 20", ideal: 20 },
             { name: "Catéter 18", ideal: 5 }, { name: "Catéter 16", ideal: 5 }, { name: "Catéter 14", ideal: 5 },
@@ -176,12 +276,10 @@
 
         let inventory = [];
 
-        // Inicializar app
-        async function init() {
+        async function initApp() {
             setFechasIniciales();
             await loadDataFromFirebase();
             
-            // Listeners
             document.getElementById('search-input').addEventListener('input', (e) => {
                 renderTable(e.target.value.toLowerCase());
             });
@@ -191,7 +289,6 @@
             });
         }
 
-        // Mostrar u ocultar spinner
         function toggleLoader(show) {
             const spinner = document.getElementById('loading-spinner');
             if(show) spinner.classList.remove('hidden');
@@ -211,25 +308,22 @@
             const exportEnd = document.getElementById('export-end');
             
             const todayStr = obtenerFechaString(new Date());
-            dateInput.value = todayStr;
-            exportStart.value = todayStr;
-            exportEnd.value = todayStr;
+            // Solo establecer si están vacíos para no sobreescribir si ya había elegido una fecha
+            if(!dateInput.value) dateInput.value = todayStr;
+            if(!exportStart.value) exportStart.value = todayStr;
+            if(!exportEnd.value) exportEnd.value = todayStr;
         }
 
-        // CARGAR DESDE FIREBASE
         async function loadDataFromFirebase() {
             toggleLoader(true);
             const fechaActual = document.getElementById('report-date').value;
             
             try {
-                // Buscar el documento en la colección "inventarios" que tenga por ID la fecha (ej: 2026-04-06)
                 const docRef = doc(db, "inventarios", fechaActual);
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
                     inventory = docSnap.data().items;
-                    
-                    // Verificar si se agregaron nuevos insumos a defaultData que no estén en la nube
                     if(inventory.length !== defaultData.length) {
                         defaultData.forEach(defaultItem => {
                             if(!inventory.find(i => i.name === defaultItem.name)) {
@@ -238,7 +332,6 @@
                         });
                     }
                 } else {
-                    // Si no hay datos para hoy, crear lista en blanco
                     inventory = defaultData.map(item => ({ ...item, actual: '' }));
                 }
             } catch (error) {
@@ -250,12 +343,10 @@
             }
         }
 
-        // GUARDAR EN FIREBASE
-        let saveTimeout = null; // Para evitar saturar Firebase con muchas peticiones seguidas
+        let saveTimeout = null; 
         async function saveDataToFirebase() {
             const fechaActual = document.getElementById('report-date').value;
             toggleLoader(true);
-
             try {
                 await setDoc(doc(db, "inventarios", fechaActual), { items: inventory });
             } catch (error) {
@@ -310,12 +401,10 @@
             });
         }
 
-        // Exponer la función updateItem al window para que el HTML pueda llamarla
         window.updateItem = function(index, value) {
             if (value !== '' && parseInt(value) < 0) value = '0';
             inventory[index].actual = value;
             
-            // Actualizar interfaz al instante sin re-renderizar todo
             const actualValue = value !== '' ? parseInt(value) : '';
             const reponerCell = document.getElementById(`reponer-${index}`);
             const row = reponerCell.parentElement;
@@ -337,7 +426,6 @@
                 row.className = 'hover:bg-gray-100 transition-colors';
             }
 
-            // Guardar en la nube con "Debounce" (espera 1 segundo tras la última tecla pulsada para no colapsar Firebase)
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(() => {
                 saveDataToFirebase();
@@ -355,7 +443,6 @@
             }
         }
 
-        // OBTENER EXCEL DESDE LA NUBE
         window.generarExcel = async function() {
             const start = document.getElementById('export-start').value;
             const end = document.getElementById('export-end').value;
@@ -373,7 +460,6 @@
             toggleLoader(true);
 
             try {
-                // Consultar a Firestore por rango de fechas
                 const q = query(
                     collection(db, "inventarios"), 
                     where("__name__", ">=", start), 
@@ -390,9 +476,8 @@
 
                 const datosParaExcel = [];
 
-                // Recorrer los documentos obtenidos
                 querySnapshot.forEach((doc) => {
-                    const fecha = doc.id; // El ID del documento es la fecha
+                    const fecha = doc.id;
                     const items = doc.data().items;
                     
                     items.forEach(item => {
@@ -417,7 +502,6 @@
                     return;
                 }
 
-                // Crear y descargar Excel
                 const hoja = XLSX.utils.json_to_sheet(datosParaExcel);
                 const libro = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(libro, hoja, "Insumos");
@@ -441,9 +525,6 @@
                 toast.classList.add('translate-y-20', 'opacity-0');
             }, 3000);
         }
-
-        // Arrancar la app
-        window.onload = init;
     </script>
 </body>
 </html>
