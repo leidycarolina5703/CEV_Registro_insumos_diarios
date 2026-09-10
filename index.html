@@ -8977,14 +8977,29 @@
             const mostrarDesglose = (d.detallar !== false) && Array.isArray(d.examenes) && d.examenes.length && d.formatoConcepto === 2;
             if (mostrarDesglose) {
                 y += 8;
+                // Agrupar exámenes repetidos (mismo nombre e "incluye"): una sola línea con cantidad y subtotal
+                const grupos = [];
+                const idxGrupo = {};
                 d.examenes.forEach(ex => {
-                    const linea = (ex.n || "") + "  —  $" + fmtMiles(ex.p);
+                    const key = (ex.n || "") + "||" + (ex.incluye || "");
+                    if (idxGrupo[key] == null) {
+                        idxGrupo[key] = grupos.length;
+                        grupos.push({ n: ex.n || "", incluye: ex.incluye || "", p: ex.p || 0, cant: 0, sub: 0 });
+                    }
+                    const g = grupos[idxGrupo[key]];
+                    g.cant += 1;
+                    g.sub += (ex.p || 0);
+                });
+                grupos.forEach(g => {
+                    const linea = g.cant > 1
+                        ? g.n + "  (x" + g.cant + " · $" + fmtMiles(g.p) + " c/u)  —  $" + fmtMiles(g.sub)
+                        : g.n + "  —  $" + fmtMiles(g.sub);
                     pdf.setFont('times', 'bold'); pdf.setFontSize(11.5);
                     pdf.splitTextToSize(linea, maxW).forEach(l => { pdf.text(l, cx, y, { align: 'center' }); y += 15; });
-                    if (ex.incluye) {
+                    if (g.incluye) {
                         pdf.setFont('times', 'italic'); pdf.setFontSize(10);
                         pdf.setTextColor(80, 80, 80);
-                        pdf.splitTextToSize("Incluye: " + ex.incluye, maxW - 40).forEach(l => { pdf.text(l, cx, y, { align: 'center' }); y += 13; });
+                        pdf.splitTextToSize("Incluye: " + g.incluye, maxW - 40).forEach(l => { pdf.text(l, cx, y, { align: 'center' }); y += 13; });
                         pdf.setTextColor(20, 20, 20);
                     }
                     y += 5;
